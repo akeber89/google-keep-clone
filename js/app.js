@@ -1,6 +1,6 @@
 class App {
   constructor() {
-    this.notes = JSON.parse(localStorage.getItem("notes")) || []; // turn data from string back to array after getting it from the browser
+    this.notes = JSON.parse(localStorage.getItem("notes")) || [];
     this.title = "";
     this.text = "";
     this.id = "";
@@ -18,7 +18,7 @@ class App {
     this.$modalCloseButton = document.querySelector(".modal-close-button");
     this.$colorTooltip = document.querySelector("#color-tooltip");
 
-    this.render();  // added this after moving notes to browser storage - will render existing notes
+    this.render();
     this.addEventListeners();
   }
 
@@ -37,8 +37,6 @@ class App {
     document.body.addEventListener("mouseout", (event) => {
       this.closeTooltip(event);
     });
-
-    // not with arrow function because 'this' would not be referring to the element but one context above
 
     this.$colorTooltip.addEventListener("mouseover", function () {
       this.style.display = "flex";
@@ -111,8 +109,7 @@ class App {
 
     if (event.target.closest(".note")) {
       this.$modal.classList.toggle("open-modal");
-      this.$modalTitle.value = this.title; 
-      // populating the modal with the entered data
+      this.$modalTitle.value = this.title;
       this.$modalText.value = this.text;
     }
   }
@@ -124,16 +121,10 @@ class App {
 
   openTooltip(event) {
     if (!event.target.matches(".toolbar-color")) return;
-
-    // DOM traversal
-
     this.id = event.target.nextElementSibling.dataset.id;
-
-    // make sure the tooltip will open always in the same place on the note
-
     const noteCoords = event.target.getBoundingClientRect();
-    const horizontal = noteCoords.left + window.scrollX;
-    const vertical = noteCoords.top + window.scrollY;
+    const horizontal = noteCoords.left;
+    const vertical = window.scrollY - 20;
     this.$colorTooltip.style.transform = `translate(${horizontal}px, ${vertical}px)`;
     this.$colorTooltip.style.display = "flex";
   }
@@ -172,22 +163,19 @@ class App {
   }
 
   selectNote(event) {
-    // var closestElement = targetElement.closest(selectors); returns the closest element to the 'note' class and stores it in a variable
     const $selectedNote = event.target.closest(".note");
     if (!$selectedNote) return;
     const [$noteTitle, $noteText] = $selectedNote.children;
     this.title = $noteTitle.innerText;
     this.text = $noteText.innerText;
-    this.id = $selectedNote.dataset.id;     // getting the id property from the selected note
+    this.id = $selectedNote.dataset.id;
   }
 
   deleteNote(event) {
     event.stopPropagation();
     if (!event.target.matches(".toolbar-delete")) return;
     const id = event.target.dataset.id;
-    // remove note based on given id, filter those out into a new array that do satisfy the condition
-    this.notes = this.notes.filter((note) 
-    => note.id !== Number(id));
+    this.notes = this.notes.filter((note) => note.id !== Number(id));
     this.render();
   }
 
@@ -198,36 +186,32 @@ class App {
 
   saveNotes() {
     localStorage.setItem("notes", JSON.stringify(this.notes));
-
-    // need to turn the object into a string to store it in local storage
   }
 
   displayNotes() {
     const hasNotes = this.notes.length > 0;
     this.$placeholder.style.display = hasNotes ? "none" : "flex";
 
-    // Setting the value of innerHTML lets you easily replace the existing contents of an element with new content.
-
     this.$notes.innerHTML = this.notes
       .map(
         (note) => `
-          <div style="background: ${note.color};" class="note" data-id="${
+        <div style="background: ${note.color};" class="note" data-id="${
           note.id
         }">
-            <div class="${note.title && "note-title"}">${note.title}</div>
-            <div class="note-text">${note.text}</div>
-            <div class="toolbar-container">
-              <div class="toolbar">
-                <img class="toolbar-color" data-id=${
-                  note.id
-                } src="https://icon.now.sh/palette">
-                <img data-id=${
-                  note.id
-                } class="toolbar-delete" src="https://icon.now.sh/delete">
-              </div>
+          <div class="${note.title && "note-title"}">${note.title}</div>
+          <div class="note-text">${note.text}</div>
+          <div class="toolbar-container">
+            <div class="toolbar">
+              <img class="toolbar-color" data-id=${
+                note.id
+              } src="https://icon.now.sh/palette">
+              <img data-id=${
+                note.id
+              } class="toolbar-delete" src="https://icon.now.sh/delete">
             </div>
           </div>
-       `
+        </div>
+     `
       )
       .join("");
   }
